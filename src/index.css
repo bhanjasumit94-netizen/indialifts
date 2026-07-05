@@ -1,0 +1,272 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================
+   Display Screens — central theme tokens
+   Every display root carries data-display-theme="dark|light".
+   Components inherit these variables so Black and White switch instantly.
+   ========================================================= */
+
+[data-display-theme] {
+  --display-bg: #050816;
+  --display-fg: #f8fafc;
+  --display-surface: #0b1220;
+  --display-surface-2: #111827;
+  --display-surface-3: #1f2937;
+  --display-muted: #94a3b8;
+  --display-subtle: #64748b;
+  --display-border: rgba(255, 255, 255, 0.14);
+  --display-border-strong: rgba(255, 255, 255, 0.24);
+  --display-table-head: #111827;
+  --display-row-even: #0d0d0d;
+  --display-row-odd: #111111;
+  --display-row-current: rgba(6, 182, 212, 0.16);
+  --display-widget-bg: rgba(0, 0, 0, 0.82);
+  --display-overlay-bg: rgba(0, 0, 0, 0.92);
+  --display-category-bg: #1d4ed8;
+  --display-category-border: #60a5fa;
+  background-color: var(--display-bg);
+  color: var(--display-fg);
+  color-scheme: dark;
+  scrollbar-color: var(--display-subtle) var(--display-surface-2);
+}
+
+[data-display-theme="light"] {
+  --display-bg: #f8fafc;
+  --display-fg: #0f172a;
+  --display-surface: #ffffff;
+  --display-surface-2: #f1f5f9;
+  --display-surface-3: #e2e8f0;
+  --display-muted: #475569;
+  --display-subtle: #64748b;
+  --display-border: #d1d5db;
+  --display-border-strong: #cbd5e1;
+  --display-table-head: #e2e8f0;
+  --display-row-even: #ffffff;
+  --display-row-odd: #f8fafc;
+  --display-row-current: #ecfeff;
+  --display-widget-bg: rgba(255, 255, 255, 0.94);
+  --display-overlay-bg: rgba(248, 250, 252, 0.94);
+  --display-category-bg: #1d4ed8;
+  --display-category-border: #2563eb;
+  color-scheme: light;
+}
+
+[data-display-theme].display-theme-root,
+[data-display-theme] .display-theme-root,
+[data-display-theme] .display-scoreboard {
+  background-color: var(--display-bg) !important;
+  color: var(--display-fg) !important;
+}
+
+[data-display-theme] table {
+  color: var(--display-fg);
+}
+
+[data-display-theme] th,
+[data-display-theme] td {
+  border-color: var(--display-border) !important;
+}
+
+[data-display-theme] thead,
+[data-display-theme] .display-table-head {
+  background-color: var(--display-table-head) !important;
+  color: var(--display-muted) !important;
+}
+
+[data-display-theme] .display-table-row-even {
+  background-color: var(--display-row-even) !important;
+}
+
+[data-display-theme] .display-table-row-odd {
+  background-color: var(--display-row-odd) !important;
+}
+
+[data-display-theme] .display-table-row-current {
+  background-color: var(--display-row-current) !important;
+}
+
+[data-display-theme] .display-category-header {
+  background-color: var(--display-category-bg) !important;
+  border-color: var(--display-category-border) !important;
+  color: #ffffff !important;
+}
+
+[data-display-theme] .display-category-header * {
+  color: #ffffff !important;
+}
+
+[data-display-theme] .display-floating-widget {
+  background-color: var(--display-widget-bg) !important;
+  border-color: var(--display-border) !important;
+  color: var(--display-fg) !important;
+}
+
+[data-display-theme] .display-floating-button {
+  background-color: var(--display-surface-2) !important;
+  color: var(--display-fg) !important;
+}
+
+/* Light theme: normalize remaining utility colors inside all display templates. */
+[data-display-theme="light"] .text-white,
+[data-display-theme="light"] .text-white\/20,
+[data-display-theme="light"] .text-white\/30,
+[data-display-theme="light"] .text-white\/40,
+[data-display-theme="light"] .text-white\/50,
+[data-display-theme="light"] .text-white\/60,
+[data-display-theme="light"] .text-white\/70,
+[data-display-theme="light"] .text-white\/80,
+[data-display-theme="light"] .text-white\/90,
+[data-display-theme="light"] .text-slate-100,
+[data-display-theme="light"] .text-slate-200,
+[data-display-theme="light"] .text-slate-300,
+[data-display-theme="light"] .text-\[\#ffffff\],
+[data-display-theme="light"] .text-\[\#d1d5db\] {
+  color: var(--display-fg) !important;
+}
+
+[data-display-theme="light"] .text-slate-400,
+[data-display-theme="light"] .text-slate-500,
+[data-display-theme="light"] .text-slate-600,
+[data-display-theme="light"] .text-\[\#9ca3af\],
+[data-display-theme="light"] .text-\[\#6b7280\] {
+  color: var(--display-muted) !important;
+}
+
+[data-display-theme="light"] .bg-black,
+[data-display-theme="light"] .bg-\[\#050816\],
+[data-display-theme="light"] .bg-\[\#05070f\],
+[data-display-theme="light"] .bg-\[\#060606\],
+[data-display-theme="light"] .bg-\[\#06060d\],
+[data-display-theme="light"] .bg-\[\#06060e\],
+[data-display-theme="light"] .bg-\[\#080808\],
+[data-display-theme="light"] .bg-\[\#0a0a0a\],
+[data-display-theme="light"] .bg-\[\#0b1220\],
+[data-display-theme="light"] .bg-\[\#0d0d0d\],
+[data-display-theme="light"] .bg-\[\#111111\],
+[data-display-theme="light"] .bg-\[\#111827\] {
+  background-color: var(--display-bg) !important;
+}
+
+[data-display-theme="light"] .bg-black\/20,
+[data-display-theme="light"] .bg-black\/25,
+[data-display-theme="light"] .bg-black\/30,
+[data-display-theme="light"] .bg-black\/35,
+[data-display-theme="light"] .bg-black\/40,
+[data-display-theme="light"] .bg-black\/50,
+[data-display-theme="light"] .bg-black\/55,
+[data-display-theme="light"] .bg-black\/60,
+[data-display-theme="light"] .bg-black\/70,
+[data-display-theme="light"] .bg-black\/80,
+[data-display-theme="light"] .bg-black\/90,
+[data-display-theme="light"] .bg-white\/\[0\.015\],
+[data-display-theme="light"] .bg-white\/\[0\.02\],
+[data-display-theme="light"] .bg-white\/\[0\.03\],
+[data-display-theme="light"] .bg-white\/5,
+[data-display-theme="light"] .bg-white\/8,
+[data-display-theme="light"] .bg-white\/10,
+[data-display-theme="light"] .bg-white\/20,
+[data-display-theme="light"] .bg-white\/30 {
+  background-color: var(--display-surface-2) !important;
+}
+
+[data-display-theme="light"] .border-white\/5,
+[data-display-theme="light"] .border-white\/8,
+[data-display-theme="light"] .border-white\/10,
+[data-display-theme="light"] .border-white\/15,
+[data-display-theme="light"] .border-white\/20,
+[data-display-theme="light"] .border-white\/25,
+[data-display-theme="light"] .border-slate-700,
+[data-display-theme="light"] .border-slate-700\/40,
+[data-display-theme="light"] .border-slate-700\/50,
+[data-display-theme="light"] .border-slate-700\/60,
+[data-display-theme="light"] .border-slate-700\/70,
+[data-display-theme="light"] .border-slate-800 {
+  border-color: var(--display-border) !important;
+}
+
+/* Light theme: override dark inline surfaces used by older display templates. */
+[data-display-theme="light"] [style*="background: #050"],
+[data-display-theme="light"] [style*="background:#050"],
+[data-display-theme="light"] [style*="background: #060"],
+[data-display-theme="light"] [style*="background:#060"],
+[data-display-theme="light"] [style*="background: #080"],
+[data-display-theme="light"] [style*="background:#080"],
+[data-display-theme="light"] [style*="background: #090"],
+[data-display-theme="light"] [style*="background:#090"],
+[data-display-theme="light"] [style*="background: #0a0"],
+[data-display-theme="light"] [style*="background:#0a0"],
+[data-display-theme="light"] [style*="background: #0b0"],
+[data-display-theme="light"] [style*="background:#0b0"],
+[data-display-theme="light"] [style*="background: #0d0"],
+[data-display-theme="light"] [style*="background:#0d0"],
+[data-display-theme="light"] [style*="background: #0e0"],
+[data-display-theme="light"] [style*="background:#0e0"],
+[data-display-theme="light"] [style*="background: #0f0"],
+[data-display-theme="light"] [style*="background:#0f0"],
+[data-display-theme="light"] [style*="background: #111"],
+[data-display-theme="light"] [style*="background:#111"],
+[data-display-theme="light"] [style*="background: linear-gradient"],
+[data-display-theme="light"] [style*="background: rgba(255,255,255"],
+[data-display-theme="light"] [style*="background: rgba(0,0,0"],
+[data-display-theme="light"] [style*="background: rgb(5,"],
+[data-display-theme="light"] [style*="background: rgb(6, 6"],
+[data-display-theme="light"] [style*="background: rgb(8, 8"],
+[data-display-theme="light"] [style*="background: rgb(9, 9"],
+[data-display-theme="light"] [style*="background: rgb(10, 10"],
+[data-display-theme="light"] [style*="background: rgb(13, 13"],
+[data-display-theme="light"] [style*="background: rgb(15, 15"],
+[data-display-theme="light"] [style*="background: rgb(17, 17"] {
+  background: var(--display-surface) !important;
+  background-color: var(--display-surface) !important;
+}
+
+[data-display-theme="light"] [style*="border: 1px solid rgba(255,255,255"],
+[data-display-theme="light"] [style*="border: 2px solid rgba(255,255,255"],
+[data-display-theme="light"] [style*="borderBottom: 1px solid rgba(255,255,255"],
+[data-display-theme="light"] [style*="borderTop: 1px solid rgba(255,255,255"],
+[data-display-theme="light"] [style*="borderRight: 1px solid rgba(255,255,255"],
+[data-display-theme="light"] [style*="borderLeft: 1px solid rgba(255,255,255"] {
+  border-color: var(--display-border) !important;
+}
+
+[data-display-theme="light"] [style*="color: #94a3b8"],
+[data-display-theme="light"] [style*="color:#94a3b8"],
+[data-display-theme="light"] [style*="color: #6b7280"],
+[data-display-theme="light"] [style*="color:#6b7280"],
+[data-display-theme="light"] [style*="color: rgb(148, 163, 184)"],
+[data-display-theme="light"] [style*="color: rgb(107, 114, 128)"] {
+  color: var(--display-muted) !important;
+}
+
+[data-display-theme="light"] [style*="color: #ffffff"]:not([style*="background"]):not([style*="background-color"]),
+[data-display-theme="light"] [style*="color:#ffffff"]:not([style*="background"]):not([style*="background-color"]),
+[data-display-theme="light"] [style*="color: rgb(255, 255, 255)"]:not([style*="background"]):not([style*="background-color"]) {
+  color: var(--display-fg) !important;
+}
+
+[data-display-theme="light"] input,
+[data-display-theme="light"] select,
+[data-display-theme="light"] textarea,
+[data-display-theme="light"] button:not([style*="background"]):not(.bg-cyan-500):not(.bg-green-500):not(.bg-red-500):not(.bg-rose-600) {
+  border-color: var(--display-border) !important;
+}
+
+[data-display-theme] ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+[data-display-theme] ::-webkit-scrollbar-track {
+  background: var(--display-surface-2);
+}
+
+[data-display-theme] ::-webkit-scrollbar-thumb {
+  background: var(--display-subtle);
+  border-radius: 6px;
+}
+
+[data-display-theme] ::-webkit-scrollbar-thumb:hover {
+  background: var(--display-muted);
+}
