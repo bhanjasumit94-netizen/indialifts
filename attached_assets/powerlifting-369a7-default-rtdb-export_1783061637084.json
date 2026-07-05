@@ -1,0 +1,646 @@
+{
+  "competitions": {
+    "comp-1780521089954": {
+      "active_group_name": "RRRRR",
+      "created_at": "2026-06-03T21:11:29.955Z",
+      "current_attempt_index": 0,
+      "current_lift": "bench",
+      "current_lifter_id": "1781430098439",
+      "display_layout": "signal_results_plate",
+      "display_theme": "black",
+      "id": "comp-1780521089954",
+      "include_collars": true,
+      "mode": "BENCH_ONLY",
+      "name": "i love you",
+      "started": true,
+      "timer_phase": "IDLE",
+      "updated_at": "2026-06-23T06:14:16.903Z"
+    },
+    "comp-1780860207422": {
+      "active_group_name": "ADD",
+      "created_at": "2026-06-07T19:23:27.423Z",
+      "current_attempt_index": 1,
+      "current_lift": "squat",
+      "display_layout": "signal_results_plate",
+      "display_theme": "black",
+      "id": "comp-1780860207422",
+      "include_collars": false,
+      "mode": "FULL_GAME",
+      "name": "HHH",
+      "next_attempt_queue": [
+        {
+          "attemptIndex": 2,
+          "lift": "squat",
+          "lifterId": "1780562030983"
+        }
+      ],
+      "started": true,
+      "timer_ends_at": 1781288840878,
+      "timer_phase": "NEXT_ATTEMPT",
+      "updated_at": "2026-06-14T06:17:52.938Z"
+    },
+    "comp-1783061148722": {
+      "created_at": "2026-07-03T06:45:48.723Z",
+      "current_attempt_index": 0,
+      "current_lift": "bench",
+      "current_lifter_id": "1783061226768",
+      "display_layout": "signal_results_plate",
+      "display_theme": "black",
+      "id": "comp-1783061148722",
+      "include_collars": false,
+      "mode": "BENCH_ONLY",
+      "name": "i love you",
+      "started": false,
+      "timer_phase": "IDLE",
+      "updated_at": "2026-07-03T06:47:15.493Z"
+    }
+  },
+  "groups": {
+    "comp-1780090627785": {
+      "group-1780268433595": {
+        "competition_id": "comp-1780090627785",
+        "created_at": "2026-05-31T23:00:34.429Z",
+        "current_lift": "bench",
+        "id": "group-1780268433595",
+        "name": "UUU"
+      }
+    },
+    "comp-1780521089954": {
+      "group-1781419068075": {
+        "competition_id": "comp-1780521089954",
+        "created_at": "2026-06-14T06:37:48.904Z",
+        "current_lift": "bench",
+        "id": "group-1781419068075",
+        "name": "66"
+      },
+      "group-1782193672634": {
+        "competition_id": "comp-1780521089954",
+        "created_at": "2026-06-23T05:47:53.472Z",
+        "current_lift": "squat",
+        "id": "group-1782193672634",
+        "name": "RRRRR"
+      }
+    },
+    "comp-1783061148722": {
+      "group-1783061170366": {
+        "competition_id": "comp-1783061148722",
+        "created_at": "2026-07-03T06:46:10.482Z",
+        "current_lift": "squat",
+        "id": "group-1783061170366",
+        "name": "GROUP A"
+      }
+    }
+  },
+  "lifters": {
+    "comp-1780090627785": {
+      "1780246655145": {
+        "bench_attempts": [
+          {
+            "status": "GOOD",
+            "weight": 152.5
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "bodyweight": 63,
+        "category": "Junior Men + Senior Men",
+        "competition_id": "comp-1780090627785",
+        "created_at": "2026-05-31T16:57:35.969Z",
+        "deadlift_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "disqualified": false,
+        "dob": "",
+        "group_name": "UUU",
+        "group_names": [
+          "UUU"
+        ],
+        "id": "1780246655145",
+        "is_equipped": false,
+        "manual_weight_class": "",
+        "name": "sumit",
+        "sex": "Male",
+        "squat_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "team": "India - Andaman and Nicobar Islands - Nicobar",
+        "updated_at": "2026-06-02T08:40:25.552Z",
+        "weight_class": "66kg"
+      },
+      "1780246691846": {
+        "bench_attempts": [
+          {
+            "status": "GOOD",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "bodyweight": 62,
+        "category": "Sub Junior Men",
+        "competition_id": "comp-1780090627785",
+        "created_at": "2026-05-31T16:58:12.678Z",
+        "deadlift_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "disqualified": false,
+        "dob": "",
+        "group_name": "UUU",
+        "group_names": [
+          "UUU"
+        ],
+        "id": "1780246691846",
+        "is_equipped": false,
+        "manual_weight_class": "",
+        "name": "amit",
+        "sex": "Male",
+        "squat_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "team": "India - Andaman and Nicobar Islands - Nicobar",
+        "updated_at": "2026-06-02T08:41:09.552Z",
+        "weight_class": "66kg"
+      },
+      "1780246716380": {
+        "bench_attempts": [
+          {
+            "status": "NO",
+            "weight": 160
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "bodyweight": 61,
+        "category": "Sub Junior Men",
+        "competition_id": "comp-1780090627785",
+        "created_at": "2026-05-31T16:58:37.225Z",
+        "deadlift_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "disqualified": false,
+        "dob": "",
+        "group_name": "UUU",
+        "group_names": [
+          "UUU"
+        ],
+        "id": "1780246716380",
+        "is_equipped": false,
+        "manual_weight_class": "",
+        "name": "rahul",
+        "sex": "Male",
+        "squat_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "team": "India - Andaman and Nicobar Islands - Nicobar",
+        "updated_at": "2026-06-02T08:40:45.442Z",
+        "weight_class": "66kg"
+      },
+      "1780267977949": {
+        "bench_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "bodyweight": 65,
+        "category": "Sub Junior Men",
+        "competition_id": "comp-1780090627785",
+        "created_at": "2026-05-31T22:52:58.775Z",
+        "deadlift_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "disqualified": false,
+        "dob": "",
+        "group_name": "UUU",
+        "group_names": [
+          "UUU"
+        ],
+        "id": "1780267977949",
+        "is_equipped": false,
+        "manual_weight_class": "",
+        "name": "sumit",
+        "sex": "Male",
+        "squat_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "team": "India - Andaman and Nicobar Islands - Nicobar",
+        "updated_at": "2026-06-01T20:06:53.989Z",
+        "weight_class": "66kg"
+      }
+    },
+    "comp-1780521089954": {
+      "1781430098438": {
+        "bench_attempts": [
+          {
+            "status": "GOOD",
+            "weight": 120
+          },
+          {
+            "status": "PENDING",
+            "weight": 122.5
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "bodyweight": 65,
+        "category": "Sub Junior Men",
+        "competition_id": "comp-1780521089954",
+        "created_at": "2026-06-14T09:41:39.293Z",
+        "deadlift_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "disqualified": false,
+        "dob": "",
+        "group_name": "RRRRR",
+        "group_names": [
+          "RRRRR"
+        ],
+        "id": "1781430098438",
+        "is_equipped": false,
+        "manual_weight_class": "66kg",
+        "name": "SOURAN SHARMA",
+        "sex": "Male",
+        "squat_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "team": "burdwan",
+        "updated_at": "2026-06-23T06:00:42.653Z",
+        "weight_class": "66kg"
+      },
+      "1781430098439": {
+        "bench_attempts": [
+          {
+            "status": "PENDING",
+            "weight": 130
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "bodyweight": 64,
+        "category": "Sub Junior Men",
+        "competition_id": "comp-1780521089954",
+        "created_at": "2026-06-14T09:41:39.293Z",
+        "deadlift_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "disqualified": false,
+        "dob": "",
+        "group_name": "RRRRR",
+        "group_names": [
+          "RRRRR"
+        ],
+        "id": "1781430098439",
+        "is_equipped": false,
+        "manual_weight_class": "",
+        "name": "PRAMOD KUMAR MAHTO",
+        "sex": "Male",
+        "squat_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "team": "burdwan",
+        "updated_at": "2026-06-23T05:59:58.328Z",
+        "weight_class": "66kg"
+      },
+      "1781430098440": {
+        "bench_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": 140
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "bodyweight": 63,
+        "category": "Sub Junior Men",
+        "competition_id": "comp-1780521089954",
+        "created_at": "2026-06-14T09:41:39.293Z",
+        "deadlift_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "disqualified": false,
+        "dob": "",
+        "group_name": "RRRRR",
+        "group_names": [
+          "RRRRR"
+        ],
+        "id": "1781430098440",
+        "is_equipped": false,
+        "manual_weight_class": "",
+        "name": "PAWAN KHATI",
+        "sex": "Male",
+        "squat_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "team": "burdwan",
+        "updated_at": "2026-06-23T05:59:44.655Z",
+        "weight_class": "66kg"
+      }
+    },
+    "comp-1783061148722": {
+      "1783061226768": {
+        "bench_attempts": [
+          {
+            "status": "PENDING",
+            "weight": 120
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "bodyweight": 54,
+        "category": "Sub Junior Men",
+        "competition_id": "comp-1783061148722",
+        "created_at": "2026-07-03T06:47:06.790Z",
+        "deadlift_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "disqualified": false,
+        "dob": "",
+        "group_name": "GROUP A",
+        "group_names": [
+          "GROUP A"
+        ],
+        "id": "1783061226768",
+        "is_equipped": false,
+        "manual_weight_class": "",
+        "name": "amit",
+        "sex": "Male",
+        "squat_attempts": [
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          },
+          {
+            "status": "UNATTEMPTED",
+            "weight": ""
+          }
+        ],
+        "team": "India - West Bengal - Purba Bardhaman",
+        "updated_at": "2026-07-03T06:47:06.790Z",
+        "weight_class": "59kg"
+      }
+    }
+  },
+  "referee_presence": {
+    "comp-1780090627785": {
+      "device-7w9y7whq-mprhwudn": {
+        "position": 0
+      },
+      "device-gbs89l9p-mps2wyod": {
+        "position": 1
+      },
+      "device-gdn4yvhy-mps30uvf": {
+        "position": 0
+      },
+      "device-tlcen4wo-mps4ypcy": {
+        "position": 2
+      }
+    }
+  },
+  "referee_sessions": {
+    "comp-1780090627785": {
+      "-Ou2i570ZjdujH7sfpdq": {
+        "competition_id": "comp-1780090627785",
+        "created_at": "2026-06-01T15:05:59.726Z",
+        "created_by": "",
+        "expires_at": "2026-07-01T15:05:59.726Z",
+        "id": "-Ou2i570ZjdujH7sfpdq",
+        "is_active": true
+      }
+    },
+    "comp-1780521089954": {
+      "-OufTd2mglJfc8ssBuzb": {
+        "competition_id": "comp-1780521089954",
+        "created_at": "2026-06-09T08:23:16.529Z",
+        "created_by": "",
+        "expires_at": "2026-07-09T08:23:16.529Z",
+        "id": "-OufTd2mglJfc8ssBuzb",
+        "is_active": true
+      }
+    },
+    "comp-1780860207422": {
+      "-Ov1Z_c9oz_-E2UCfHdC": {
+        "competition_id": "comp-1780860207422",
+        "created_at": "2026-06-13T20:00:31.566Z",
+        "created_by": "",
+        "expires_at": "2026-07-13T20:00:31.566Z",
+        "id": "-Ov1Z_c9oz_-E2UCfHdC",
+        "is_active": true
+      }
+    }
+  }
+}
