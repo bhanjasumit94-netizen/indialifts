@@ -1294,26 +1294,20 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const normalizedLifters = session.lifters.map((l) => normalizeLifter(l));
     const normalizedGroups = session.groups.map((g) => normalizeGroup(g));
     const competitionId = activeCompetitionIdRef.current;
-    const focusedLifter = normalizedLifters.find((lifter) => lifter.id === session.currentLifterId);
-    const focusedAttempt = focusedLifter
-      ? getAttempts(focusedLifter, session.currentLift)[session.currentAttemptIndex]
-      : null;
-    const liveQueue = isFinalAttempt(focusedAttempt)
-      ? rebuildLiveCompetitionQueue({
-          lifters: normalizedLifters,
-          currentLift: session.currentLift,
-          currentAttemptIndex: session.currentAttemptIndex,
-          competitionMode: session.competitionMode,
-          activeCompetitionGroupName: session.activeCompetitionGroupName,
-          manualOrderByStage: session.manualOrderByStage,
-          nextAttemptQueue: session.nextAttemptQueue,
-        })
-      : {
-          currentLifterId: session.currentLifterId,
-          currentLift: session.currentLift,
-          currentAttemptIndex: session.currentAttemptIndex,
-          nextAttemptQueue: session.nextAttemptQueue.filter((entry) => isPendingQueueEntry(entry, normalizedLifters)),
-        };
+
+    // The current attempt (lifter, lift, attempt index) is the single shared
+    // source of truth for both the Control Center and the Referee Station.
+    // We do NOT recompute currentLifterId when the current attempt has been
+    // judged (GOOD/NO) — the current lifter stays visible until the Control
+    // Center explicitly sets the next lifter (which writes a new non-final
+    // attempt to Firebase, triggering a fresh session update here).
+    const liveQueue = {
+      currentLifterId: session.currentLifterId,
+      currentLift: session.currentLift,
+      currentAttemptIndex: session.currentAttemptIndex,
+      nextAttemptQueue: session.nextAttemptQueue.filter((entry) => isPendingQueueEntry(entry, normalizedLifters)),
+    };
+
     const appliedName =
       normalizedLifters.find((l) => l.id === liveQueue.currentLifterId)?.name ?? "(unknown)";
 
@@ -1966,7 +1960,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     }
-    if (isFinalAttempt(focusedAttempt)) {
+    if (isFinalAttempt(focusedAttempt) && rebuiltQueue.currentLifterId) {
       setCurrentLifterId(rebuiltQueue.currentLifterId);
       setCurrentLift(rebuiltQueue.currentLift);
       setCurrentAttemptIndex(rebuiltQueue.currentAttemptIndex);
@@ -2191,10 +2185,13 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     const nextTimerEndsAt = normalizedQueue.length > 0 ? Date.now() + ONE_MINUTE_MS : null;
 
     setLifters(updated);
-    setCurrentLift(nextLift);
-    setCurrentAttemptIndex(nextAttemptIdx);
-    if (nextLifterId !== currentLifterId) {
+    // Keep the current lifter/attempt visible until the next lifter is
+    // explicitly set. Do NOT clear currentLifterId when no next lifter is
+    // found — the referee station must continue showing the last lifter.
+    if (nextLifterId && nextLifterId !== currentLifterId) {
       setCurrentLifterId(nextLifterId);
+      setCurrentLift(nextLift);
+      setCurrentAttemptIndex(nextAttemptIdx);
     }
     if (JSON.stringify(normalizedQueue) !== JSON.stringify(nextAttemptQueue)) {
       setNextAttemptQueueState(normalizedQueue);
@@ -2212,9 +2209,9 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
         await persistSessionSnapshot({
           lifters: updated.map((l) => normalizeLifter(l)),
           groups,
-          currentLifterId: nextLifterId,
-          currentLift: nextLift,
-          currentAttemptIndex: nextAttemptIdx,
+          currentLifterId: nextLifterId ?? currentLifterId,
+          currentLift: nextLifterId ? nextLift : currentLift,
+          currentAttemptIndex: nextLifterId ? nextAttemptIdx : currentAttemptIndex,
           competitionStarted,
           includeCollars,
           timerPhase: nextTimerPhase,
@@ -8102,7 +8099,7 @@ const ResultsPage = () => {
           nextAttemptQueue,
         };
     setLifters(updated);
-    if (finalResultSaved) {
+    if (finalResultSaved && rebuiltQueue.currentLifterId) {
       setCurrentLifterId(rebuiltQueue.currentLifterId);
       setCurrentLift(rebuiltQueue.currentLift);
       setCurrentAttemptIndex(rebuiltQueue.currentAttemptIndex);
@@ -8111,9 +8108,9 @@ const ResultsPage = () => {
     void persistSessionSnapshot({
       lifters: updated.map((l) => normalizeLifter(l)),
       groups,
-      currentLifterId: rebuiltQueue.currentLifterId,
-      currentLift: rebuiltQueue.currentLift,
-      currentAttemptIndex: rebuiltQueue.currentAttemptIndex,
+      currentLifterId: rebuiltQueue.currentLifterId ?? currentLifterId,
+      currentLift: (finalResultSaved && rebuiltQueue.currentLifterId) ? rebuiltQueue.currentLift : currentLift,
+      currentAttemptIndex: (finalResultSaved && rebuiltQueue.currentLifterId) ? rebuiltQueue.currentAttemptIndex : currentAttemptIndex,
       competitionStarted,
       includeCollars,
       timerPhase,
