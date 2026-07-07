@@ -7286,6 +7286,8 @@ const RefereeStationPage = () => {
   const [decisionEndsAt, setDecisionEndsAt] = useState<number | null>(null);
   const [pendingDecision, setPendingDecision] = useState<Exclude<RefSignal, null> | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [sessionEnded, setSessionEnded] = useState(false);
   const holdTimeoutRef = useRef<number | null>(null);
   const commitTimeoutRef = useRef<number | null>(null);
 
@@ -7420,6 +7422,15 @@ const RefereeStationPage = () => {
     setDecisionEndsAt(null);
   };
 
+  const endSession = () => {
+    cancelPendingDecision();
+    publishRefereeSignal(config.index, null);
+    untrackRefereePresence();
+    setCurrentRefereeSessionId(null);
+    setSessionEnded(true);
+    setShowEndConfirm(false);
+  };
+
   const startDecisionHold = (decision: Exclude<RefSignal, null>, event: { preventDefault: () => void }) => {
     event.preventDefault();
     if (pendingDecision) return;
@@ -7474,15 +7485,23 @@ const RefereeStationPage = () => {
           <p className="text-[10px] uppercase tracking-widest text-slate-500">Referee Station</p>
           <p className="text-base font-bold text-white">{config.label}</p>
         </div>
-        <motion.div
-          initial={{ opacity: 0.7 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, repeat: Infinity, repeatType: "reverse" }}
-          className="flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          LIVE
-        </motion.div>
+        <div className="flex items-center gap-2">
+          <motion.div
+            initial={{ opacity: 0.7 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, repeat: Infinity, repeatType: "reverse" }}
+            className="flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300"
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            LIVE
+          </motion.div>
+          <button
+            onClick={() => setShowEndConfirm(true)}
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            End Session
+          </button>
+        </div>
       </div>
 
       {/* ── Current Attempt info ── */}
@@ -7631,6 +7650,75 @@ const RefereeStationPage = () => {
           Hold button to confirm your decision
         </motion.p>
       </div>
+
+      {/* ── End session confirmation ── */}
+      <AnimatePresence>
+        {showEndConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+            onClick={() => setShowEndConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0b0e1a] p-6 text-center"
+            >
+              <h3 className="text-lg font-bold text-white">End Referee Session?</h3>
+              <p className="mt-2 text-sm text-slate-400">
+                Your signal will be cleared and this station will disconnect from the competition. You can rescan the QR code to reconnect.
+              </p>
+              <div className="mt-5 flex gap-3">
+                <button
+                  onClick={() => setShowEndConfirm(false)}
+                  className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={endSession}
+                  className="flex-1 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-red-600"
+                >
+                  End Session
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Session ended screen ── */}
+      <AnimatePresence>
+        {sessionEnded && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#05070f] px-4"
+          >
+            <div className="max-w-sm text-center">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
+                <svg className="h-8 w-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-white">Session Ended</h2>
+              <p className="mt-2 text-sm text-slate-400">
+                You have been disconnected from the competition. Rescan the QR code to reconnect as a referee.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-6 w-full rounded-lg bg-cyan-500 px-4 py-3 font-semibold text-black transition-colors hover:bg-cyan-400"
+              >
+                Reconnect
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
