@@ -797,6 +797,12 @@ export function useFirebaseSync(
   // ── Realtime: competition session (competitions + lifters + groups) ────────
   useEffect(() => {
     if (!isFirebaseConfigured || !activeCompetitionId || !firebaseDb) return;
+    // Wait for Firebase auth to complete before subscribing. Without this, the
+    // initial fetchAndApplySession runs before the anonymous sign-in (used by
+    // referee phones) finishes, the get() calls fail due to DB rules, and the
+    // session (currentLifterId, currentLift, etc.) is never applied — leaving
+    // the referee page stuck on "Waiting for competition to start…".
+    if (authLoading) return;
 
     let cancelled = false;
     let sessionRefetchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -962,7 +968,7 @@ export function useFirebaseSync(
       unsubLifters();
       unsubGroups();
     };
-  }, [activeCompetitionId, readOnly, onCompetitionSessionFromDb]);
+  }, [activeCompetitionId, readOnly, onCompetitionSessionFromDb, authLoading, authUserId]);
 
   // ── Realtime: referee presence observer ────────────────────────────────────
   useEffect(() => {
