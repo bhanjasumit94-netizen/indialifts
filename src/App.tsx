@@ -527,7 +527,7 @@ const normalizeAttemptInputWeight = (value: EditableAttemptWeight): number | "" 
 const emptyAttemptsFromFirst = (first: EditableAttemptWeight): Attempt[] => {
   const weight = normalizeAttemptInputWeight(first);
   return [
-    { weight, status: weight === "" ? "UNATTEMPTED" : "PENDING" },
+    { weight, status: "UNATTEMPTED" },
     { weight: "", status: "UNATTEMPTED" },
     { weight: "", status: "UNATTEMPTED" },
   ];
@@ -1990,7 +1990,8 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       ts: Date.now(),
     });
 
-    attempts[attemptIndex] = { weight, status: weight === "" ? "UNATTEMPTED" : "PENDING" };
+    const existingStatus = attempts[attemptIndex]?.status;
+    attempts[attemptIndex] = { weight, status: weight === "" ? "UNATTEMPTED" : (existingStatus ?? "UNATTEMPTED") };
     const updated = [...lifters];
     updated[idx] = setAttempts(selected, lift, attempts);
     setLifters(updated);
@@ -3447,7 +3448,8 @@ const ControlPage = () => {
     const merged = lifters.map((row) => {
       if (row.id !== lifter.id) return row;
       const attempts = getAttempts(row, currentLift);
-      attempts[currentAttemptIndex] = { weight: attemptValue, status: attemptValue === "" ? "UNATTEMPTED" : "PENDING" };
+      const existingStatus = attempts[currentAttemptIndex]?.status;
+      attempts[currentAttemptIndex] = { weight: attemptValue, status: attemptValue === "" ? "UNATTEMPTED" : (existingStatus ?? "UNATTEMPTED") };
       const withAttempt = setAttempts(row, currentLift, attempts);
       const updatedRow = { ...withAttempt, bodyweight: bodyweightValue, lot: lotValue };
       return {
@@ -4563,12 +4565,7 @@ const LifterManagementPage = () => {
     const next = [...attempts];
     const weight = normalizeAttemptInputWeight(firstWeight);
     const existingStatus = next[0]?.status;
-    const status: AttemptStatus =
-      weight === ""
-        ? "UNATTEMPTED"
-        : existingStatus === "GOOD" || existingStatus === "NO"
-          ? existingStatus
-          : "PENDING";
+    const status: AttemptStatus = weight === "" ? "UNATTEMPTED" : (existingStatus ?? "UNATTEMPTED");
     next[0] = { weight, status };
     if (!next[1]) next[1] = { weight: "", status: "UNATTEMPTED" };
     if (!next[2]) next[2] = { weight: "", status: "UNATTEMPTED" };
@@ -5610,12 +5607,7 @@ const GroupManagementPage = () => {
     const next = [...attempts];
     const weight = normalizeAttemptInputWeight(firstWeight);
     const existingStatus = next[0]?.status;
-    const status: AttemptStatus =
-      weight === ""
-        ? "UNATTEMPTED"
-        : existingStatus === "GOOD" || existingStatus === "NO"
-          ? existingStatus
-          : "PENDING";
+    const status: AttemptStatus = weight === "" ? "UNATTEMPTED" : (existingStatus ?? "UNATTEMPTED");
     next[0] = { weight, status };
     if (!next[1]) next[1] = { weight: "", status: "UNATTEMPTED" };
     if (!next[2]) next[2] = { weight: "", status: "UNATTEMPTED" };
