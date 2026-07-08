@@ -1321,6 +1321,29 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
   const verdictPersistInFlightRef = useRef(false);
   const autoApplyFingerprintRef = useRef<string | null>(null);
 
+  // Refs that always hold the latest state values, so async callbacks (notably
+  // applyRefereeDecision) never read stale closure copies after a Firebase
+  // round-trip overwrites local state mid-flight.
+  const liftersRef = useRef(lifters);
+  const currentLifterIdRef = useRef(currentLifterId);
+  const currentLiftRef = useRef(currentLift);
+  const currentAttemptIndexRef = useRef(currentAttemptIndex);
+  const nextAttemptQueueRef = useRef(nextAttemptQueue);
+  const refereeSignalsRef = useRef(refereeSignals);
+  const activeCompetitionGroupNameRef = useRef(activeCompetitionGroupName);
+  const competitionModeRef = useRef(competitionMode);
+  const manualOrderByStageRef = useRef(manualOrderByStage);
+
+  useEffect(() => { liftersRef.current = lifters; }, [lifters]);
+  useEffect(() => { currentLifterIdRef.current = currentLifterId; }, [currentLifterId]);
+  useEffect(() => { currentLiftRef.current = currentLift; }, [currentLift]);
+  useEffect(() => { currentAttemptIndexRef.current = currentAttemptIndex; }, [currentAttemptIndex]);
+  useEffect(() => { nextAttemptQueueRef.current = nextAttemptQueue; }, [nextAttemptQueue]);
+  useEffect(() => { refereeSignalsRef.current = refereeSignals; }, [refereeSignals]);
+  useEffect(() => { activeCompetitionGroupNameRef.current = activeCompetitionGroupName; }, [activeCompetitionGroupName]);
+  useEffect(() => { competitionModeRef.current = competitionMode; }, [competitionMode]);
+  useEffect(() => { manualOrderByStageRef.current = manualOrderByStage; }, [manualOrderByStage]);
+
   useEffect(() => {
     activeCompetitionIdRef.current = activeCompetitionId;
   }, [activeCompetitionId]);
@@ -2141,7 +2164,25 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    if (!currentLifterId) {
+    // Read the latest state from refs — never from the closure.  After a
+    // Firebase round-trip overwrites local state (lifters, currentLifterId,
+    // etc.) the closure copy inside this useCallback is stale until React
+    // re-renders and recreates the callback.  If the user presses a manual
+    // button (or the auto-apply timer fires) in that window, the stale
+    // closure would target the PREVIOUS lifter and either skip the call
+    // ("attempt already has final status") or apply the verdict to the wrong
+    // lifter.  Refs are always current.
+    const currentLifters = liftersRef.current;
+    const currentLifterIdNow = currentLifterIdRef.current;
+    const currentLiftNow = currentLiftRef.current;
+    const currentAttemptIndexNow = currentAttemptIndexRef.current;
+    const nextAttemptQueueNow = nextAttemptQueueRef.current;
+    const activeCompetitionGroupNameNow = activeCompetitionGroupNameRef.current;
+    const competitionModeNow = competitionModeRef.current;
+    const manualOrderByStageNow = manualOrderByStageRef.current;
+    const refereeSignalsNow = refereeSignalsRef.current;
+
+    if (!currentLifterIdNow) {
       console.warn(LOG_SESSION, "applyRefereeDecision skipped — no current lifter", {
         role: syncLogRole(),
         competitionId: activeCompetitionId,
@@ -2149,17 +2190,17 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    const idx = lifters.findIndex((l) => l.id === currentLifterId);
+    const idx = currentLifters.findIndex((l) => l.id === currentLifterIdNow);
     if (idx < 0) {
       console.warn(LOG_SESSION, "applyRefereeDecision skipped — lifter not in list", {
         role: syncLogRole(),
         competitionId: activeCompetitionId,
-        currentLifterId,
+        currentLifterId: currentLifterIdNow,
       });
       return;
     }
 
-    const effectiveSignals = overrideSignals ?? refereeSignals;
+    const effectiveSignals = overrideSignals ?? refereeSignalsNow;
     const completed = effectiveSignals.every((s) => s !== null);
     if (!completed) {
       console.warn(LOG_SESSION, "applyRefereeDecision skipped — signals incomplete", {
@@ -2171,7 +2212,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
     const noVotes = effectiveSignals.filter((s) => s === "NO").length;
     const status: AttemptStatus = noVotes >= 2 ? "NO" : "GOOD";
-    const selected = lifters[idx];
+    const selected = currentLifters[idx];
 
     console.log(
       isDisplayScreenRef.current ? LOG_DISPLAY : LOG_CONTROL,
@@ -2180,9 +2221,9 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
         role: syncLogRole(),
         competitionId: activeCompetitionId,
         lifter: selected.name,
-        lifterId: currentLifterId,
-        lift: currentLift,
-        attempt: currentAttemptIndex + 1,
+        lifterId: currentLifterIdNow,
+        lift: currentLiftNow,
+        attempt: currentAttemptIndexNow + 1,
         status,
         signals: effectiveSignals,
       },
@@ -2193,13 +2234,14 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     // Clear referee signals IMMEDIATELY — before any state advances — so the
     // auto-apply effect cannot re-fire on the next lifter with stale signals.
     setRefereeSignalsState([null, null, null]);
+    refereeSignalsRef.current = [null, null, null];
     broadcast({ refereeSignals: [null, null, null] });
     if (isFirebaseConfigured) {
       void clearSignals().catch((error) => console.error(LOG_SESSION, "early clearSignals failed", error));
     }
 
-    const attempts = [...getAttempts(selected, currentLift)];
-    const currentAttempt = attempts[currentAttemptIndex] ?? { weight: "", status: "UNATTEMPTED" as AttemptStatus };
+    const attempts = [...getAttempts(selected, currentLiftNow)];
+    const currentAttempt = attempts[currentAttemptIndexNow] ?? { weight: "", status: "UNATTEMPTED" as AttemptStatus };
 
     // Guard against duplicate processing (e.g. two tabs both fire applyRefereeDecision
     // simultaneously). If another tab already wrote the verdict to Firebase and the
@@ -2209,43 +2251,43 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       console.warn(
         isDisplayScreenRef.current ? LOG_DISPLAY : LOG_CONTROL,
         "applyRefereeDecision skipped — attempt already has final status",
-        { status: currentAttempt.status, lifterId: currentLifterId, lift: currentLift, attempt: currentAttemptIndex + 1 },
+        { status: currentAttempt.status, lifterId: currentLifterIdNow, lift: currentLiftNow, attempt: currentAttemptIndexNow + 1 },
       );
       verdictPersistInFlightRef.current = false;
       return;
     }
 
-    attempts[currentAttemptIndex] = { ...currentAttempt, status };
+    attempts[currentAttemptIndexNow] = { ...currentAttempt, status };
 
-    const updated = [...lifters];
-    updated[idx] = setAttempts(selected, currentLift, attempts);
+    const updated = [...currentLifters];
+    updated[idx] = setAttempts(selected, currentLiftNow, attempts);
 
     const sessionLifters =
-      activeCompetitionGroupName !== null
-        ? updated.filter((l) => isInGroup(l.group, activeCompetitionGroupName))
+      activeCompetitionGroupNameNow !== null
+        ? updated.filter((l) => isInGroup(l.group, activeCompetitionGroupNameNow))
         : updated;
 
     const queueForSession =
-      activeCompetitionGroupName !== null
-        ? nextAttemptQueue.filter((e) => {
+      activeCompetitionGroupNameNow !== null
+        ? nextAttemptQueueNow.filter((e) => {
             const row = updated.find((l) => l.id === e.lifterId);
-            return row ? isInGroup(row.group, activeCompetitionGroupName) : false;
+            return row ? isInGroup(row.group, activeCompetitionGroupNameNow) : false;
           })
-        : nextAttemptQueue;
+        : nextAttemptQueueNow;
 
     const nextPlatform = findOfficialNextPlatformAttempt(
       sessionLifters,
-      currentLift,
-      currentAttemptIndex,
-      competitionMode,
-      manualOrderByStage,
+      currentLiftNow,
+      currentAttemptIndexNow,
+      competitionModeNow,
+      manualOrderByStageNow,
     );
 
-    const nextLift = nextPlatform?.lift ?? currentLift;
-    const nextAttemptIdx = nextPlatform?.attemptIndex ?? currentAttemptIndex;
+    const nextLift = nextPlatform?.lift ?? currentLiftNow;
+    const nextAttemptIdx = nextPlatform?.attemptIndex ?? currentAttemptIndexNow;
     const nextLifterId = nextPlatform?.lifterId ?? null;
 
-    const declarationStage = resolveStageForNextAttempt(currentLift, currentAttemptIndex, competitionMode);
+    const declarationStage = resolveStageForNextAttempt(currentLiftNow, currentAttemptIndexNow, competitionModeNow);
     let queueAfter = queueForSession;
     if (declarationStage) {
       const declaredWeight = getAttemptValue(selected, declarationStage.lift, declarationStage.attemptIndex);
@@ -2278,9 +2320,9 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     // nextLift/nextAttemptIdx are unchanged. Running the block below would overwrite the verdict
     // we just wrote (GOOD/NO) back to PENDING, so the last lift "does not save".
     const platformMoved =
-      nextLifterId !== currentLifterId ||
-      nextLift !== currentLift ||
-      nextAttemptIdx !== currentAttemptIndex;
+      nextLifterId !== currentLifterIdNow ||
+      nextLift !== currentLiftNow ||
+      nextAttemptIdx !== currentAttemptIndexNow;
 
     const nextIdx = nextLifterId ? updated.findIndex((l) => l.id === nextLifterId) : -1;
     if (platformMoved && nextIdx >= 0) {
@@ -2297,24 +2339,29 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     const normalizedQueue = sortNextAttemptQueue(
-      [...queueAfter, ...derivePendingNextAttemptQueue(sessionLifters, competitionMode)],
+      [...queueAfter, ...derivePendingNextAttemptQueue(sessionLifters, competitionModeNow)],
       updated,
-      competitionMode,
+      competitionModeNow,
     ).filter((entry) => isPendingQueueEntry(entry, updated));
     const nextTimerPhase: TimerPhase = normalizedQueue.length > 0 ? "NEXT_ATTEMPT" : "IDLE";
     const nextTimerEndsAt = normalizedQueue.length > 0 ? Date.now() + ONE_MINUTE_MS : null;
 
     setLifters(updated);
+    liftersRef.current = updated;
     // Keep the current lifter/attempt visible until the next lifter is
     // explicitly set. Do NOT clear currentLifterId when no next lifter is
     // found — the referee station must continue showing the last lifter.
-    if (nextLifterId && nextLifterId !== currentLifterId) {
+    if (nextLifterId && nextLifterId !== currentLifterIdNow) {
       setCurrentLifterId(nextLifterId);
+      currentLifterIdRef.current = nextLifterId;
       setCurrentLift(nextLift);
+      currentLiftRef.current = nextLift;
       setCurrentAttemptIndex(nextAttemptIdx);
+      currentAttemptIndexRef.current = nextAttemptIdx;
     }
-    if (JSON.stringify(normalizedQueue) !== JSON.stringify(nextAttemptQueue)) {
+    if (JSON.stringify(normalizedQueue) !== JSON.stringify(nextAttemptQueueNow)) {
       setNextAttemptQueueState(normalizedQueue);
+      nextAttemptQueueRef.current = normalizedQueue;
       broadcast({ nextAttemptQueue: normalizedQueue });
     }
     // Decision ends platform time and starts the 1-minute next-attempt declaration time.
@@ -2329,17 +2376,17 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
         await persistSessionSnapshot({
           lifters: updated.map((l) => normalizeLifter(l)),
           groups,
-          currentLifterId: nextLifterId ?? currentLifterId,
-          currentLift: nextLifterId ? nextLift : currentLift,
-          currentAttemptIndex: nextLifterId ? nextAttemptIdx : currentAttemptIndex,
+          currentLifterId: nextLifterId ?? currentLifterIdNow,
+          currentLift: nextLifterId ? nextLift : currentLiftNow,
+          currentAttemptIndex: nextLifterId ? nextAttemptIdx : currentAttemptIndexNow,
           competitionStarted,
           includeCollars,
           timerPhase: nextTimerPhase,
           timerEndsAt: nextTimerEndsAt,
-          competitionMode,
-          activeCompetitionGroupName,
+          competitionMode: competitionModeNow,
+          activeCompetitionGroupName: activeCompetitionGroupNameNow,
           nextAttemptQueue: normalizedQueue,
-          manualOrderByStage,
+          manualOrderByStage: manualOrderByStageNow,
         });
         console.log(
           isDisplayScreenRef.current ? LOG_DISPLAY : LOG_CONTROL,
@@ -2361,17 +2408,17 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
         broadcast({
           lifters: updated.map((l) => normalizeLifter(l)),
           groups,
-          currentLifterId: nextLifterId ?? currentLifterId,
-          currentLift: nextLifterId ? nextLift : currentLift,
-          currentAttemptIndex: nextLifterId ? nextAttemptIdx : currentAttemptIndex,
+          currentLifterId: nextLifterId ?? currentLifterIdNow,
+          currentLift: nextLifterId ? nextLift : currentLiftNow,
+          currentAttemptIndex: nextLifterId ? nextAttemptIdx : currentAttemptIndexNow,
           competitionStarted,
           includeCollars,
           timerPhase: nextTimerPhase,
           timerEndsAt: nextTimerEndsAt,
-          competitionMode,
-          activeCompetitionGroupName,
+          competitionMode: competitionModeNow,
+          activeCompetitionGroupName: activeCompetitionGroupNameNow,
           nextAttemptQueue: normalizedQueue,
-          manualOrderByStage,
+          manualOrderByStage: manualOrderByStageNow,
         });
       }
     } catch (error) {
@@ -2384,15 +2431,6 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
       verdictPersistInFlightRef.current = false;
     }
   }, [
-    lifters,
-    currentLifterId,
-    refereeSignals,
-    currentLift,
-    currentAttemptIndex,
-    activeCompetitionGroupName,
-    nextAttemptQueue,
-    competitionMode,
-    manualOrderByStage,
     setLifters,
     setCurrentLift,
     setCurrentAttemptIndex,
@@ -2406,7 +2444,6 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     groups,
     competitionStarted,
     includeCollars,
-    activeCompetitionGroupName,
     firebaseSyncReadOnly,
     isDisplayScreen,
     activeCompetitionId,
