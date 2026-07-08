@@ -337,6 +337,49 @@ const getCategoryHeaderColor = (name: string): string => {
   return "#263238";
 };
 
+/**
+ * Fixed IPF age-category display order. Used to sort scoreboard group headers
+ * (e.g. "Sub Junior Men 59 KG") so they never fall back to alphabetical order.
+ */
+const IPF_AGE_CATEGORY_ORDER = [
+  "SUB JUNIOR",
+  "SUB-JUNIOR",
+  "JUNIOR",
+  "SENIOR",
+  "MASTER 1",
+  "MASTERS 1",
+  "MASTER 2",
+  "MASTERS 2",
+  "MASTER 3",
+  "MASTERS 3",
+  "MASTER 4",
+  "MASTERS 4",
+  "MASTER",
+  "MASTERS",
+];
+
+const getAgeCategoryRank = (groupName: string): number => {
+  const upper = (groupName || "").toUpperCase();
+  for (let i = 0; i < IPF_AGE_CATEGORY_ORDER.length; i++) {
+    if (upper.includes(IPF_AGE_CATEGORY_ORDER[i])) return i;
+  }
+  return IPF_AGE_CATEGORY_ORDER.length;
+};
+
+/** Extract the numeric weight class from a group name like "Sub Junior Men 59 KG" → 59. */
+const getWeightClassFromGroupName = (groupName: string): number => {
+  const match = groupName.match(/(\d+(?:\.\d+)?)\s*KG/i);
+  return match ? parseFloat(match[1]) : 0;
+};
+
+/** Sort scoreboard group names by IPF age category, then weight class (ascending). */
+const sortByIpfCategoryOrder = (a: string, b: string): number => {
+  const catA = getAgeCategoryRank(a);
+  const catB = getAgeCategoryRank(b);
+  if (catA !== catB) return catA - catB;
+  return getWeightClassFromGroupName(a) - getWeightClassFromGroupName(b);
+};
+
 // IPF Goodlift Points Coefficients (official formula May 2020)
 // Source: https://www.ipfpointscalculator.com/
 const GL_COEFFICIENTS: Record<
@@ -9361,7 +9404,7 @@ const DisplayFullPage = () => {
     ranking.forEach((lifter) => {
       getScoreboardClasses(lifter).forEach((className) => seen.add(className));
     });
-    return Array.from(seen).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    return Array.from(seen).sort(sortByIpfCategoryOrder);
   }, [ranking]);
 
   const rankingByGroup = useMemo(() => {

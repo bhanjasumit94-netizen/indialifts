@@ -352,21 +352,24 @@ function buildScoreboardData(
         const lotA = typeof a.lot === "number" ? a.lot : Infinity;
         const lotB = typeof b.lot === "number" ? b.lot : Infinity;
         if (lotA !== lotB) return lotA - lotB;
+        const bwA = typeof a.bodyweight === "number" ? a.bodyweight : Infinity;
+        const bwB = typeof b.bodyweight === "number" ? b.bodyweight : Infinity;
+        if (bwA !== bwB) return bwA - bwB;
         return a.name.localeCompare(b.name);
       });
       return { name, sex, federation: "", weightRange: weightLabel, lifters: sorted, _wcKey: wcKey, _sexKey: sexKey, _category: category } as ScoreboardCategory & { _wcKey: string; _sexKey: "Male" | "Female"; _category: string };
     })
     .sort((a: any, b: any) => {
-      // 1) Sex (Men first, then Women — keep stable grouping)
-      if (a._sexKey !== b._sexKey) return a._sexKey === "Male" ? -1 : 1;
-      // 2) Official IPF weight-class order (lightest → heaviest, SHW last)
-      const wcA = getWeightClassOrder(a._sexKey, a._wcKey);
-      const wcB = getWeightClassOrder(b._sexKey, b._wcKey);
-      if (wcA !== wcB) return wcA - wcB;
-      // 3) Age division order within a weight class
+      // 1) Age division (Sub Junior → Junior → Senior → Master 1 → …)
       const dvA = getDivisionOrder(a._category);
       const dvB = getDivisionOrder(b._category);
       if (dvA !== dvB) return dvA - dvB;
+      // 2) Sex (Men first, then Women — keep stable grouping)
+      if (a._sexKey !== b._sexKey) return a._sexKey === "Male" ? -1 : 1;
+      // 3) Official IPF weight-class order (lightest → heaviest, SHW last)
+      const wcA = getWeightClassOrder(a._sexKey, a._wcKey);
+      const wcB = getWeightClassOrder(b._sexKey, b._wcKey);
+      if (wcA !== wcB) return wcA - wcB;
       return a.name.localeCompare(b.name);
     });
 
