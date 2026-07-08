@@ -1074,16 +1074,21 @@ type AuthContextValue = {
   role: AuthRole;
   loading: boolean;
   isAuthenticated: boolean;
+  anonAuthError: string | null;
   signIn: (email: string, password: string) => Promise<{ ok: boolean; message: string }>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+const REFEREE_ANON_SIGNIN_MAX_ATTEMPTS = 4;
+const REFEREE_ANON_SIGNIN_RETRY_BASE_MS = 800;
+
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [role, setRole] = useState<AuthRole>("user");
   const [loading, setLoading] = useState(true);
+  const [anonAuthError, setAnonAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isFirebaseConfigured || !firebaseAuth) {
@@ -1094,21 +1099,76 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const isRefereeRoute = () => window.location.hash.startsWith("#/signals/");
 
+    let cancelled = false;
+    let retryTimer: number | null = null;
+    let signInInFlight = false;
+    let exhausted = false;
+
+    // Referee phones open via QR without credentials and need an anonymous
+    // Firebase session so DB reads (competitions/lifters/session) succeed.
+    // On venue/cellular networks this first attempt can fail transiently
+    // (flaky wifi, DNS hiccups) — without a retry the referee is left
+    // permanently unauthenticated: signal *writes* still work (that path is
+    // publicly writable), but competitions/lifters *reads* are denied, so
+    // the station silently shows "Waiting for competition to start…"
+    // forever even though the desktop admin session (already authenticated)
+    // works fine. Retry with backoff before giving up.
+    const attemptAnonymousSignIn = (attempt: number) => {
+      if (signInInFlight) return; // guard against overlapping sign-in chains
+      signInInFlight = true;
+      console.log("[Powerlifting:SessionSync] referee route detected, signing in anonymously", { attempt });
+      signInAnonymously(firebaseAuth!)
+        .then(() => {
+          // onAuthStateChanged will fire again with the new user.
+          if (!cancelled) {
+            exhausted = false;
+            setAnonAuthError(null);
+          }
+        })
+        .catch((err) => {
+          console.error("[Powerlifting:SessionSync] anonymous sign-in failed", { attempt, err });
+          if (cancelled) return;
+          if (attempt < REFEREE_ANON_SIGNIN_MAX_ATTEMPTS) {
+            const delay = REFEREE_ANON_SIGNIN_RETRY_BASE_MS * 2 ** (attempt - 1);
+            retryTimer = window.setTimeout(() => {
+              signInInFlight = false;
+              attemptAnonymousSignIn(attempt + 1);
+            }, delay);
+          } else {
+            signInInFlight = false;
+            exhausted = true;
+            setAnonAuthError(
+              "Could not connect this device to the competition. Check your network connection — retrying automatically.",
+            );
+            setLoading(false);
+          }
+        })
+        .finally(() => {
+          if (attempt < REFEREE_ANON_SIGNIN_MAX_ATTEMPTS) signInInFlight = false;
+        });
+    };
+
+    // If retries are exhausted, keep trying whenever the device regains
+    // connectivity or the tab becomes visible again (e.g. referee walks back
+    // into wifi range) instead of requiring a manual reload.
+    const retryOnReconnect = () => {
+      if (!exhausted || cancelled || signInInFlight) return;
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      if (!isRefereeRoute() || firebaseAuth!.currentUser) return;
+      attemptAnonymousSignIn(1);
+    };
+    window.addEventListener("online", retryOnReconnect);
+    document.addEventListener("visibilitychange", retryOnReconnect);
+
     const unsubscribe = onAuthStateChanged(firebaseAuth, async (fbUser) => {
       if (!fbUser && isRefereeRoute()) {
-        // Referee phones open via QR without credentials. Sign them in
-        // anonymously so Firebase DB reads (competitions/lifters/session)
-        // succeed and the mobile UI mirrors the desktop control station.
-        try {
-          console.log("[Powerlifting:SessionSync] referee route detected, signing in anonymously");
-          await signInAnonymously(firebaseAuth!);
-          return; // onAuthStateChanged will fire again with the new user
-        } catch (err) {
-          console.error("[Powerlifting:SessionSync] anonymous sign-in failed", err);
-        }
+        attemptAnonymousSignIn(1);
+        return; // wait for anonymous sign-in (with retries) to resolve
       }
       setFirebaseUser(fbUser);
       if (fbUser) {
+        exhausted = false;
+        setAnonAuthError(null);
         try {
           const tokenResult = await fbUser.getIdTokenResult();
           setRole(tokenResult.claims["role"] === "admin" ? "admin" : "user");
@@ -1121,7 +1181,13 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      window.removeEventListener("online", retryOnReconnect);
+      document.removeEventListener("visibilitychange", retryOnReconnect);
+      cancelled = true;
+      if (retryTimer) window.clearTimeout(retryTimer);
+      unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -1148,6 +1214,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     role,
     loading,
     isAuthenticated: Boolean(firebaseUser),
+    anonAuthError,
     signIn,
     signOut,
   };
@@ -7293,6 +7360,7 @@ const RefereeStationPage = () => {
   const { station } = useParams();
   const [searchParams] = useSearchParams();
   const { sessionId, isValid, isLoading, error } = useRefereSessionValidation();
+  const { anonAuthError } = useAuth();
   const config = getRefereeConfig(station);
   const {
     competitions,
@@ -7559,6 +7627,8 @@ const RefereeStationPage = () => {
               </div>
             </motion.div>
           </AnimatePresence>
+        ) : anonAuthError ? (
+          <p className="py-4 text-center text-sm text-red-400">{anonAuthError}</p>
         ) : (
           <p className="py-4 text-center text-sm text-slate-500">Waiting for competition to start…</p>
         )}

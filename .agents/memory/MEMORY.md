@@ -1,0 +1,1 @@
+- [Referee mobile auth vs signal writes](referee-anon-auth-vs-public-writes.md) — mobile referee pages can write signals but fail to read competitions/lifters if anonymous sign-in fails; explains "works on desktop, blank on mobile" symptoms.
