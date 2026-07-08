@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { isFirebaseConfigured } from "@/lib/firebase";
+import { ref, onValue } from "firebase/database";
+import { isFirebaseConfigured, firebaseDb } from "@/lib/firebase";
 
 const LOG_SESSION = "[Session:Referee]";
 
@@ -13,15 +14,11 @@ interface UseRefereSessionValidationResult {
 }
 
 /**
- * Referee QR flow — NO authentication.
- * The referee scans the QR code and is granted access immediately as long
- * as the link contains a session id and a competition id. No Firebase
- * anonymous sign-in and no server-side session lookup is performed.
- *
- * NOTE: For signals to reach the control station, your Realtime Database
- * rules for `referee_signals/$cid` must allow public read/write (no auth
- * required). Example:
- *   "referee_signals": { "$cid": { ".read": true, ".write": true } }
+ * Referee QR flow — NO authentication, but the session ID from the QR link is
+ * validated against the Realtime Database in real time. If the admin ends the
+ * session, the session node is removed or marked inactive and this hook
+ * immediately reports the session as invalid, causing the referee page to show
+ * the "Session expired" screen and stop tracking presence.
  */
 export function useRefereSessionValidation(): UseRefereSessionValidationResult {
   const [searchParams] = useSearchParams();
@@ -37,11 +34,18 @@ export function useRefereSessionValidation(): UseRefereSessionValidationResult {
     setSessionId(urlSessionId);
     setCompetitionId(cidFromUrl);
 
-    console.log(LOG_SESSION, "referee station opening (no auth)", {
+    console.log(LOG_SESSION, "referee station opening", {
       urlSessionId,
       cidFromUrl,
       firebaseConfigured: isFirebaseConfigured,
     });
+
+    if (!isFirebaseConfigured || !firebaseDb) {
+      setIsValid(false);
+      setError("Firebase is not configured. Referee sessions are unavailable.");
+      setIsLoading(false);
+      return;
+    }
 
     if (!urlSessionId || !cidFromUrl) {
       setIsValid(false);
@@ -50,10 +54,46 @@ export function useRefereSessionValidation(): UseRefereSessionValidationResult {
       return;
     }
 
-    // No auth, no DB validation — just accept the scan.
-    setIsValid(true);
-    setError(null);
-    setIsLoading(false);
+    setIsLoading(true);
+    const sessionRef = ref(firebaseDb, `referee_sessions/${cidFromUrl}/${urlSessionId}`);
+    const unsubscribe = onValue(
+      sessionRef,
+      (snap) => {
+        if (!snap.exists()) {
+          setIsValid(false);
+          setError("Session ended or was deleted. Please rescan the QR code.");
+          setIsLoading(false);
+          return;
+        }
+        const data = snap.val() as { is_active?: boolean; expires_at?: string };
+        if (!data.is_active) {
+          setIsValid(false);
+          setError("Session ended. Please rescan the QR code.");
+          setIsLoading(false);
+          return;
+        }
+        const expiresAt = data.expires_at ? new Date(data.expires_at) : null;
+        if (expiresAt && Date.now() > expiresAt.getTime()) {
+          setIsValid(false);
+          setError("Session expired. Please rescan the QR code.");
+          setIsLoading(false);
+          return;
+        }
+        setIsValid(true);
+        setError(null);
+        setIsLoading(false);
+      },
+      (err) => {
+        console.error(LOG_SESSION, "session validation failed", err);
+        setIsValid(false);
+        setError("Could not verify session. Please check your connection.");
+        setIsLoading(false);
+      },
+    );
+
+    return () => {
+      unsubscribe();
+    };
   }, [searchParams]);
 
   return { sessionId, isValid, isLoading, error, competitionId };

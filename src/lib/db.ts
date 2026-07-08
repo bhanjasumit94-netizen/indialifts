@@ -297,6 +297,18 @@ export const dbRefereeDevices = {
     const db = assertDb();
     await remove(ref(db, `referee_devices/${competitionId}/${position}`));
   },
+
+  async clearAll(competitionId: string): Promise<void> {
+    const db = assertDb();
+    await remove(ref(db, `referee_devices/${competitionId}`));
+  },
+};
+
+export const dbRefereePresence = {
+  async clearAll(competitionId: string): Promise<void> {
+    const db = assertDb();
+    await remove(ref(db, `referee_presence/${competitionId}`));
+  },
 };
 
 // Sessions are stored nested: referee_sessions/{competitionId}/{sessionId}

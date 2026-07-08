@@ -1,1 +1,2 @@
 - [Referee mobile auth vs signal writes](referee-anon-auth-vs-public-writes.md) — mobile referee pages can write signals but fail to read competitions/lifters if anonymous sign-in fails; explains "works on desktop, blank on mobile" symptoms.
+- [Referee disconnect must stop presence, not just invalidate sessions](referee-disconnect-presence-vs-session.md) — ending referee sessions has to clear both the session node and realtime presence, and the referee page must validate the session continuously; otherwise devices stay "Connected" after End Sessions.

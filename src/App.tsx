@@ -52,7 +52,7 @@ import { useRefereSessionValidation } from "./hooks/useRefereSessionValidation";
 import { InvalidSessionError } from "./components/InvalidSessionError";
 import LiveScoreboard from "./components/LiveScoreboard";
 import ExcelDataManagement from "./components/ExcelDataManagement";
-import { dbRefereeSessions } from "./lib/db";
+import { dbRefereeSessions, dbRefereePresence, dbRefereeDevices } from "./lib/db";
 
 type AppContextValue = {
   competitions: CompetitionRecord[];
@@ -7115,11 +7115,25 @@ const RefereePage = () => {
     }
     setSessionNotice("Ending all referee sessions...");
     try {
-      await dbRefereeSessions.invalidateAll(activeCompetitionId);
-      await resetSignals();
+      const results = await Promise.allSettled([
+        dbRefereeSessions.invalidateAll(activeCompetitionId),
+        dbRefereePresence.clearAll(activeCompetitionId),
+        dbRefereeDevices.clearAll(activeCompetitionId),
+        resetSignals(),
+      ]);
+      const failures = results
+        .map((r, i) => ({ r, step: ["sessions", "presence", "devices", "signals"][i] }))
+        .filter(({ r }) => r.status === "rejected");
+      failures.forEach(({ r, step }) => {
+        console.error(LOG_SESSION, `failed to clear ${step} while ending sessions`, (r as PromiseRejectedResult).reason);
+      });
       setActiveSession(null);
-      console.log(LOG_SESSION, "all referee sessions ended", { activeCompetitionId });
-      setSessionNotice("All referee sessions ended. QR links are no longer valid.");
+      console.log(LOG_SESSION, "all referee sessions ended", { activeCompetitionId, failures: failures.map((f) => f.step) });
+      if (failures.length > 0) {
+        setSessionNotice(`Sessions ended, but some cleanup steps failed (${failures.map((f) => f.step).join(", ")}). QR links are still invalid.`);
+      } else {
+        setSessionNotice("All referee sessions ended. Referee devices are disconnected.");
+      }
     } catch (error) {
       console.error(LOG_SESSION, "failed to end referee sessions", error);
       setSessionNotice("Failed to end referee sessions. Please try again.");
@@ -7428,7 +7442,7 @@ const RefereeStationPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!config || !activeCompetitionId) return;
+    if (!config || !activeCompetitionId || !isValid) return;
     const timer = window.setTimeout(() => {
       trackRefereePresence(config.index);
     }, 500);
@@ -7436,10 +7450,10 @@ const RefereeStationPage = () => {
       window.clearTimeout(timer);
       untrackRefereePresence();
     };
-  }, [activeCompetitionId, config, trackRefereePresence, untrackRefereePresence]);
+  }, [activeCompetitionId, config, isValid, trackRefereePresence, untrackRefereePresence]);
 
   useEffect(() => {
-    if (!config || !activeCompetitionId) return;
+    if (!config || !activeCompetitionId || !isValid) return;
 
     const retrack = () => {
       if (document.visibilityState === "visible") {
@@ -7460,10 +7474,10 @@ const RefereeStationPage = () => {
       window.removeEventListener("focus", retrack);
       window.removeEventListener("online", handleOnline);
     };
-  }, [activeCompetitionId, config, trackRefereePresence]);
+  }, [activeCompetitionId, config, isValid, trackRefereePresence]);
 
   useEffect(() => {
-    if (!config || !activeCompetitionId) return;
+    if (!config || !activeCompetitionId || !isValid) return;
 
     const heartbeat = window.setInterval(() => {
       if (document.visibilityState === "visible") {
@@ -7474,7 +7488,7 @@ const RefereeStationPage = () => {
     return () => {
       window.clearInterval(heartbeat);
     };
-  }, [activeCompetitionId, config, trackRefereePresence]);
+  }, [activeCompetitionId, config, isValid, trackRefereePresence]);
 
   // Referee phones only publish signals to Firebase. Verdict + DB persist run on the display screen.
 
