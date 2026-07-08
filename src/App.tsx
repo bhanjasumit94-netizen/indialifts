@@ -2189,6 +2189,15 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     verdictPersistInFlightRef.current = true;
+
+    // Clear referee signals IMMEDIATELY — before any state advances — so the
+    // auto-apply effect cannot re-fire on the next lifter with stale signals.
+    setRefereeSignalsState([null, null, null]);
+    broadcast({ refereeSignals: [null, null, null] });
+    if (isFirebaseConfigured) {
+      void clearSignals().catch((error) => console.error(LOG_SESSION, "early clearSignals failed", error));
+    }
+
     const attempts = [...getAttempts(selected, currentLift)];
     const currentAttempt = attempts[currentAttemptIndex] ?? { weight: "", status: "UNATTEMPTED" as AttemptStatus };
 
@@ -2352,9 +2361,9 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
         broadcast({
           lifters: updated.map((l) => normalizeLifter(l)),
           groups,
-          currentLifterId: nextLifterId,
-          currentLift: nextLift,
-          currentAttemptIndex: nextAttemptIdx,
+          currentLifterId: nextLifterId ?? currentLifterId,
+          currentLift: nextLifterId ? nextLift : currentLift,
+          currentAttemptIndex: nextLifterId ? nextAttemptIdx : currentAttemptIndex,
           competitionStarted,
           includeCollars,
           timerPhase: nextTimerPhase,
@@ -2365,9 +2374,6 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
           manualOrderByStage,
         });
       }
-
-      // Clear referee lights only after the platform snapshot is in the database.
-      await resetSignals();
     } catch (error) {
       console.error(LOG_SESSION, "applyRefereeDecision failed", {
         role: syncLogRole(),
@@ -2395,7 +2401,7 @@ const AppProvider = ({ children }: { children: React.ReactNode }) => {
     broadcast,
     startNextAttemptClock,
     clearTimerState,
-    resetSignals,
+    clearSignals,
     persistSessionSnapshot,
     groups,
     competitionStarted,
